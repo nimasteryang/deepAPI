@@ -15,3 +15,5 @@ https://drive.google.com/drive/folders/1z4MewyHsWBB5X1TB4UkW3A99K7LQNCVu?usp=sha
 
 1. Dataset: 1.2GB
 2. Output trained model: 12GB
+
+# in case run on local machine, import the environment in the environment.yml
