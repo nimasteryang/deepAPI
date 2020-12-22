@@ -10,16 +10,18 @@ import os, sys
 parentPath = os.path.abspath("..")
 sys.path.insert(0, parentPath)# add parent folder to path so as to import common modules
 from helper import timeSince, sent2indexes, indexes2sent
-import models, configs, data_loader
+import models
+import configs
+import data_loader
 from data_loader import APIDataset, APIDataset, load_dict, load_vecs
 from metrics import Metrics
 from sample import evaluate
 from modules import get_cosine_schedule_with_warmup
-
-from tensorboardX import SummaryWriter # install tensorboardX (pip install tensorboardX) before importing this package
+from torch.utils.tensorboard import SummaryWriter 
 
 
 def train(args):
+    print(args)
     timestamp=datetime.now().strftime('%Y%m%d%H%M')    
     # LOG #
     logger = logging.getLogger(__name__)
@@ -58,10 +60,11 @@ def train(args):
         torch.save(model.state_dict(), ckpt_path)
 
     def load_model(model, epoch, timestamp):
+        # manually modifed 
         """Load parameters from checkpoint"""
         ckpt_path=f'./output/{args.model}/{args.expname}/{timestamp}/models/model_epo{epoch}.pkl'
         print(f'Loading model parameters from {ckpt_path}')
-        model.load_state_dict(torch.load(checkpoint))
+        model.load_state_dict(torch.load(ckpt_path))
 
     config = getattr(configs, 'config_'+args.model)()
 
@@ -79,9 +82,9 @@ def train(args):
     ###############################################################################
     model = getattr(models, args.model)(config) 
     if args.reload_from>=0:
-        load_model(model, args.reload_from)
+        load_model(model, args.reload_from,202012011353)
     model=model.to(device)
-    
+    print("model defined!")
     
     ###############################################################################
     # Prepare the Optimizer
@@ -100,6 +103,7 @@ def train(args):
     # Training
     ###############################################################################
     logger.info("Training...")
+    print("config:",config)
     itr_global=1
     start_epoch=1 if args.reload_from==-1 else args.reload_from+1
     for epoch in range(start_epoch, config['epochs']+1):
@@ -143,7 +147,6 @@ def train(args):
                         v=loss_records.get(loss_name, [])
                         v.append(loss_value)
                         loss_records[loss_name]=v
-
                 log = 'Validation '
                 for loss_name, loss_values in loss_records.items():
                     log = log + loss_name + ':%.4f  '%(np.mean(loss_values))
@@ -154,9 +157,9 @@ def train(args):
             itr_global+=1        
 
             if itr_global % args.eval_every == 0:  # evaluate the model in the develop set
-                model.eval()      
-                save_model(model, itr_global, timestamp) # save model after each epoch
-                
+                model.eval()
+                # save model after each epoch              
+                save_model(model, epoch,timestamp) # save model after each epoch
                 valid_loader=torch.utils.data.DataLoader(dataset=valid_set, batch_size=1, shuffle=False, num_workers=1)
                 vocab_api = load_dict(args.data_path+'vocab.apiseq.json')
                 vocab_desc = load_dict(args.data_path+'vocab.desc.json')
@@ -171,12 +174,13 @@ def train(args):
                 if args.visual:
                     tb_writer.add_scalar('recall_bleu', recall_bleu, itr_global)
                     tb_writer.add_scalar('prec_bleu', prec_bleu, itr_global)
-                
+                        
 
         # end of epoch ----------------------------
-        model.adjust_lr()
+        #model.adjust_lr()
     
 if __name__ == '__main__':
+
     
     parser = argparse.ArgumentParser(description='DeepAPI Pytorch')
     # Path Arguments

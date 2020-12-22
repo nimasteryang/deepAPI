@@ -17,7 +17,8 @@ def config_DeepAPI():
 
 # Training Arguments
     'batch_size':100,
-    'epochs':30, # maximum number of epochs
+    'epochs':2,
+    # 'epochs':30, # maximum number of epochs
     'min_epochs':2, # minimum number of epochs to train for
 
     'lr':1., # autoencoder learning rate
@@ -44,7 +45,8 @@ def config_RNNEncDec():
 
 # Training Arguments
     'batch_size':100,
-    'epochs':30, # maximum number of epochs
+    'epochs':2,  # maximum number of epochs
+    # 'epochs':30, # maximum number of epochs
     'min_epochs':2, # minimum number of epochs to train for
 
     'lr':1e-4, # autoencoder learning rate

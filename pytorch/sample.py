@@ -22,20 +22,24 @@ def evaluate(model, metrics, test_loader, vocab_desc, vocab_api, repeat, decode_
     local_t = 0
     for descs, desc_lens, apiseqs, api_lens in tqdm(test_loader):
         
-        if local_t>1000:
+        if local_t>100:
             break        
         
         desc_str = indexes2sent(descs[0].numpy(), vocab_desc)
-        
+        # print("test evaluate: desc_str",desc_str)
         descs, desc_lens = [tensor.to(device) for tensor in [descs, desc_lens]]
+        # print("test evaluate: descs",descs)
         with torch.no_grad():
             sample_words, sample_lens = model.sample(descs, desc_lens, repeat, decode_mode)
         # nparray: [repeat x seq_len]
+        # print("pred trg",sample_words)
         pred_sents, _ = indexes2sent(sample_words, vocab_api)
+        # print("pred sent:",pred_sents)
         pred_tokens = [sent.split(' ') for sent in pred_sents]
         ref_str, _ =indexes2sent(apiseqs[0].numpy(), vocab_api)
         ref_tokens = ref_str.split(' ')
-        
+        # print("pred token:",pred_tokens)
+        # print("actu token:",ref_tokens)
         max_bleu, avg_bleu = metrics.sim_bleu(pred_tokens, ref_tokens)
         recall_bleus.append(max_bleu)
         prec_bleus.append(avg_bleu)

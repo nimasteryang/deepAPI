@@ -5,6 +5,8 @@ from nltk.translate.bleu_score import SmoothingFunction
 from collections import Counter
 
 def bleu_stats(hypothesis, reference):
+    # print("\nhypo:",hypothesis)
+    # print("refe:",reference,"\n")
     yield len(hypothesis)
     yield len(reference)
     for n in range(1, 5):
@@ -18,7 +20,9 @@ def smoothed_bleu(stats):
     tiny = 1e-15 ## so that if guess is 0 still return 0
     c, r = stats[:2]
     log_bleu_prec = sum([np.log((tiny + float(x)) / (small + y)) for x, y in zip(stats[2::2], stats[3::2])]) / 4.
-    return np.exp(min(0, 1 - float(r) / c) + log_bleu_prec) * 100
+    ret = np.exp(min(0, 1 - float(r) / c) + log_bleu_prec) * 100
+    # print("bleu scores",ret)
+    return ret
 
 class Metrics:
     """
@@ -45,6 +49,9 @@ class Metrics:
                 scores.append(smoothed_bleu(list(bleu_stats(hyp, ref))))
             except:
                 scores.append(0.0)
+            # print("scores",scores)
+        maxx = np.max(scores)
+        avgg = np.mean(scores)
         return np.max(scores), np.mean(scores)
     
 
